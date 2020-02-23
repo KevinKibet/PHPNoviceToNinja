@@ -2,14 +2,10 @@
 if (isset($_POST['joketext'])) {
 try {
 include __DIR__ . '/../includes/DatabaseConnection.php';
+include __DIR__ . '/../includes/DatabaseFunctions.php';
 
-$sql = 'INSERT INTO `joke` SET
-`joketext` = :joketext,
-`jokedate` = CURDATE()';
+insertJoke($pdo, $_POST['joketext'], 1);
 
-$smtp = $pdo->prepare($sql);
-$smtp->bindValue(':joketext', $_POST['joketext']);
-$smtp->execute();
 
 header('location: joke.php');
 

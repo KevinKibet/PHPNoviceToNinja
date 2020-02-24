@@ -46,20 +46,53 @@ return $query;
 }
 
 
-function insertJoke($pdo, $joketext, $authorId) {
-$query = 'INSERT INTO `joke` (`joketext`, `jokedate`,
-`authorId`) VALUES (:joketext, CURDATE(), :authorId)';
-$parameters = [':joketext' => $joketext, ':authorId'
-=> $authorId];
-query($pdo, $query, $parameters);
+#function insertJoke($pdo, $joketext, $authorId) {
+#$query = 'INSERT INTO `joke` (`joketext`, `jokedate`,
+#`authorId`) VALUES (:joketext, CURDATE(), :authorId)';
+#$parameters = [':joketext' => $joketext, ':authorId'
+#=> $authorId];
+#query($pdo, $query, $parameters);
+#}
+
+function insertJoke($pdo, $fields) {
+$query = 'INSERT INTO `joke` (';
+foreach ($fields as $key => $value) {
+$query .= '`' . $key . '`,';
+}
+$query = rtrim($query, ',');
+$query .= ') VALUES (';
+foreach ($fields as $key => $value) {
+$query .= ':' . $key . ',';
+}
+$query = rtrim($query, ',');
+$query .= ')';
+foreach ($fields as $key => $value) {
+if ($value instanceof DateTime) {
+$fields[$key] = $value->format('Y-m-d');
+}
+}
+
+query($pdo, $query, $fields);
 }
 
 
-function updateJoke($pdo, $jokeId, $joketext, $authorId) {
-$parameters = [':joketext' => $joketext,
-':authorId' => $authorId, ':id' => $jokeId];
-query($pdo, 'UPDATE `joke` SET `authorId` = :authorId,
-`joketext` = :joketext WHERE `id` = :id', $parameters);
+#function updateJoke($pdo, $jokeId, $joketext, $authorId) {
+#$parameters = [':joketext' => $joketext,
+#':authorId' => $authorId, ':id' => $jokeId];
+#query($pdo, 'UPDATE `joke` SET `authorId` = :authorId,
+#`joketext` = :joketext WHERE `id` = :id', $parameters);
+#}
+
+function updateJoke($pdo, $fields) {
+$query = ' UPDATE `joke` SET ';
+foreach ($fields as $key => $value) {
+$query .= '`' . $key . '` = :' . $key . ',';
+}
+$query = rtrim($query, ',');
+$query .= ' WHERE `id` = :primaryKey';
+// Set the :primaryKey variable
+$fields['primaryKey'] = $fields['id'];
+query($pdo, $query, $fields);
 }
 
 ?>

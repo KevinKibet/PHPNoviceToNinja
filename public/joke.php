@@ -8,7 +8,12 @@ include_once __DIR__ .'/../includes/DatabaseFunctions.php';
 $sql = 'SELECT `joke`.`id`, `joketext`, `name`, `mail`
 FROM `joke` INNER JOIN `author`
 ON `authorid` = `author`.`id`';
+ 
+ #$result = $pdo->query($sql);
+
 $jokes = $pdo->query($sql);
+
+
 $totaljokes = totaljokes($pdo);
 #while($row= $result->fetch()){
 

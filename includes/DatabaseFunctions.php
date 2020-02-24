@@ -10,10 +10,24 @@ $row = $query->fetch();
 
 return $row[0];
 }
+function deleteJoke($pdo, $id){
+
+$parameters = [':id'=>$id];
+query($pdo,'DELETE FROM `joke` WHERE `id` = :id', $parameters );
 
 
+}
 
 
+function getJoke($pdo, $id) {
+// Create the array of $parameters for use in the queryfunction
+$parameters = [':id' => $id];
+
+// call the query function and provide the $parameters array
+$query = query($pdo, 'SELECT * FROM `joke`
+WHERE `id` = :id', $parameters);
+return $query->fetch();
+}
 
 function query($pdo, $sql, $parameters = []) {
 $query = $pdo->prepare($sql);

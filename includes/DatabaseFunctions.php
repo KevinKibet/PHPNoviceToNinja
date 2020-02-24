@@ -66,16 +66,19 @@ $query .= ':' . $key . ',';
 }
 $query = rtrim($query, ',');
 $query .= ')';
+$fields = processDates($fields);
+
+query($pdo, $query, $fields);
+}
+
+function processDates($fields) {
 foreach ($fields as $key => $value) {
 if ($value instanceof DateTime) {
 $fields[$key] = $value->format('Y-m-d');
 }
 }
-
-query($pdo, $query, $fields);
+return $fields;
 }
-
-
 #function updateJoke($pdo, $jokeId, $joketext, $authorId) {
 #$parameters = [':joketext' => $joketext,
 #':authorId' => $authorId, ':id' => $jokeId];
@@ -84,12 +87,13 @@ query($pdo, $query, $fields);
 #}
 
 function updateJoke($pdo, $fields) {
-$query = ' UPDATE `joke` SET ';
+$query = ' UPDATE joke SET ';
 foreach ($fields as $key => $value) {
 $query .= '`' . $key . '` = :' . $key . ',';
 }
 $query = rtrim($query, ',');
-$query .= ' WHERE `id` = :primaryKey';
+$query .= ' WHERE id = :primarykey';
+$fields = processDates($fields);
 // Set the :primaryKey variable
 $fields['primaryKey'] = $fields['id'];
 query($pdo, $query, $fields);

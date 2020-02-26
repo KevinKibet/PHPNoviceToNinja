@@ -1,61 +1,33 @@
 <?php
-
-
-
-function totalJokes($database) {
-$query = $database->prepare('SELECT COUNT(*)
-FROM `joke`');
-$query->execute();
-$row = $query->fetch();
-
-return $row[0];
-}
-function deleteJoke($pdo, $id){
-
-$parameters = [':id'=>$id];
-query($pdo,'DELETE FROM `joke` WHERE `id` = :id', $parameters );
-
-
-}
-
-
-
-function allJokes($pdo) {
-$jokes = query($pdo, 'SELECT `joke`.`id`, `joketext`,
-`name`, `mail`
-FROM `joke` INNER JOIN `author`
-ON `authorid` = `author`.`id`');
-return $jokes->fetchAll();
-}
-
-
-function getJoke($pdo, $id) {
-// Create the array of $parameters for use in the queryfunction
-$parameters = [':id' => $id];
-
-// call the query function and provide the $parameters array
-$query = query($pdo, 'SELECT * FROM `joke`
-WHERE `id` = :id', $parameters);
-return $query->fetch();
-}
-
-function query($pdo, $sql, $parameters = []) {
+class DatabaseTable
+{
+private function query($pdo, $sql, $parameters = [])
+{
 $query = $pdo->prepare($sql);
 $query->execute($parameters);
 return $query;
 }
+public function total($pdo, $table)
+{
+$query = $this->query($pdo, 'SELECT COUNT(*) FROM
+`' . $table . '`');
+$row = $query->fetch();
+return $row[0];
+}
+public function findById($pdo, $table, $primaryKey, $value)
+{
+$query = 'SELECT * FROM `' . $table . '` WHERE
+`' . $primaryKey . '` = :value';
+$parameters = [
+'value' => $value
+];
+$query = $this->query($pdo, $query, $parameters);
+return $query->fetch();
+}
 
-
-#function insertJoke($pdo, $joketext, $authorId) {
-#$query = 'INSERT INTO `joke` (`joketext`, `jokedate`,
-#`authorId`) VALUES (:joketext, CURDATE(), :authorId)';
-#$parameters = [':joketext' => $joketext, ':authorId'
-#=> $authorId];
-#query($pdo, $query, $parameters);
-#}
-
-function insertJoke($pdo, $fields) {
-$query = 'INSERT INTO `joke` (';
+private function insert($pdo, $table, $fields)
+{
+$query = 'INSERT INTO `' . $table . '` (';
 foreach ($fields as $key => $value) {
 $query .= '`' . $key . '`,';
 }
@@ -66,12 +38,36 @@ $query .= ':' . $key . ',';
 }
 $query = rtrim($query, ',');
 $query .= ')';
-$fields = processDates($fields);
-
-query($pdo, $query, $fields);
+$fields = $this->processDates($fields);
+$this->query($pdo, $query, $fields);
 }
+private function update($pdo, $table, $primaryKey, $fields)
+{
+$query = ' UPDATE `' . $table .'` SET ';
+foreach ($fields as $key => $value) {
+$query .= '`' . $key . '` = :' . $key . ',';
+}
+$query = rtrim($query, ',');
+$query .= ' WHERE `' . $primaryKey . '` = :primaryKey';
+// Set the :primaryKey variable
+$fields['primaryKey'] = $fields['id'];
 
-function processDates($fields) {
+$fields = $this->processDates($fields);
+$this->query($pdo, $query, $fields);
+}
+public function delete($pdo, $table, $primaryKey, $id)
+{
+$parameters = [':id' => $id];
+$this->query($pdo, 'DELETE FROM `' . $table . '` WHERE
+`' . $primaryKey . '` = :id', $parameters);
+}
+public function findAll($pdo, $table)
+{
+$result = query($pdo, 'SELECT * FROM `' . $table . '`');
+return $result->fetchAll();
+}
+private function processDates($fields)
+{
 foreach ($fields as $key => $value) {
 if ($value instanceof DateTime) {
 $fields[$key] = $value->format('Y-m-d');
@@ -79,24 +75,16 @@ $fields[$key] = $value->format('Y-m-d');
 }
 return $fields;
 }
-#function updateJoke($pdo, $jokeId, $joketext, $authorId) {
-#$parameters = [':joketext' => $joketext,
-#':authorId' => $authorId, ':id' => $jokeId];
-#query($pdo, 'UPDATE `joke` SET `authorId` = :authorId,
-#`joketext` = :joketext WHERE `id` = :id', $parameters);
-#}
-
-function updateJoke($pdo, $fields) {
-$query = ' UPDATE joke SET ';
-foreach ($fields as $key => $value) {
-$query .= '`' . $key . '` = :' . $key . ',';
+public function save($pdo, $table, $primaryKey, $record)
+{
+try {
+if ($record[$primaryKey] == '') {
+$record[$primaryKey] = null;
 }
-$query = rtrim($query, ',');
-$query .= ' WHERE id = :primarykey';
-$fields = processDates($fields);
-// Set the :primaryKey variable
-$fields['primaryKey'] = $fields['id'];
-query($pdo, $query, $fields);
-}
+$this->insert($pdo, $table, $record);
+} catch (PDOException $e) {
 
-?>
+$this->update($pdo, $table, $primaryKey, $record);
+}
+}
+}

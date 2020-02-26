@@ -88,3 +88,4 @@ $this->update($pdo, $table, $primaryKey, $record);
 }
 }
 }
+?>

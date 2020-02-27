@@ -3,16 +3,38 @@
 <?php
 try {
 include __DIR__ . '/../includes/DatabaseConnection.php';
-include_once __DIR__ .'/../includes/DatabaseFunctions.php';
+include __DIR__ . '/../classes/DatabaseTable.php';
 #$sql ='SELECT `joke`.`id`, `joketext` , `name`, `email` FROM `joke` INNER JOIN `author` ON `authorid' = `author`.`id` '';
 
- 
+ $jokesTable = new DatabaseTable($pdo, 'joke','id');
+ $authorTable= new DatabaseTable($pdo, 'author','id');
  #$result = $pdo->query($sql);
 
-$jokes = allJokes($pdo);
+ $results = $jokesTable->findAll();
+ $joke = [];
+ foreach ($results as $joke) {
+ 	$author = $authorTable->findById($joke['authorId']);
+
+ 	$jokes[] = [
 
 
-$totaljokes = totaljokes($pdo);
+'id' => $joke['id'],
+'joketext' => $joke['joketext'],
+'jokedate' => $joke['jokedate'],
+'name' => $author['name'],
+'email' => $author['email']
+
+
+
+ 	];
+ }
+
+
+
+
+
+
+$totalJokes = $jokesTable->total();
 #while($row= $result->fetch()){
 
 	#$jokes[] = ['id'=>$row['id'], 'joketext'=>$row['joketext']];

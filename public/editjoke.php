@@ -1,17 +1,17 @@
 <?php
 include __DIR__ . '/../includes/DatabaseConnection.php';
-include __DIR__ . '/../includes/DatabaseFunctions.php';
+include __DIR__ . '/../includes/DatabaseTable.php';
 try {
-if (isset($_POST['joketext'])) {
+if (isset($_POST['joke'])) {
 #updateJoke($pdo, $_POST['jokeid'], $_POST['joketext'], 1);
-updateJoke($pdo, [
-'id' => $_POST['jokeid'],
-'joketext' => $_POST['joketext'],
-'authorId' => 1
-]);	
+$joke = $_POST['joke'];
+$joke['jokedate'] = new DateTime();
+$joke['authorId'] = 1;
+$jokesTable->save($joke);
 header('location: jokes.php');
 } else {
-$joke = getJoke($pdo, $_GET['id']);
+
+$joke = $jokesTable->findById($_GET['id']);
 $title = 'Edit joke';
 ob_start();
 include __DIR__ . '/../templates/editjoke.html.php';
